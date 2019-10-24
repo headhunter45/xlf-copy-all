@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { description, version } = require('./package.json');
 const program = require('commander');
 const xlf2po = require('./xlf2po.js')
