@@ -1,3 +1,4 @@
 /node_modules
 /.vscode
 /testData
+/package-lock.json
