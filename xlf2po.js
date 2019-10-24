@@ -5,7 +5,9 @@ const convert = require('xml-js');
 function poEncode(rawString) {
     return rawString
         .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"');
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '"\n"')
+    ;
 }
 
 //
