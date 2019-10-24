@@ -45,6 +45,7 @@ switch (fromExt.toLowerCase()) {
     case 'xlf':
         switch (toExt.toLowerCase()) {
             case 'po':
+            case 'pot':
                 xlf2po(inputXlfFileName, outputPoFileName);
                 break;
             default:
