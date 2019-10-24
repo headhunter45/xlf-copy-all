@@ -10,6 +10,26 @@ function poEncode(rawString) {
     ;
 }
 
+function createPoString(sourceText, meaningText, descriptionText, transId) {
+    let poText = '';
+
+    if (descriptionText) {
+        poText += '#. ' + poEncode(descriptionText) + '\n';
+    }
+
+    if (transId) {
+        poText += '#: ' + transId + '\n';
+    }
+
+    if (meaningText) {
+        poText += 'msgctxt "' + poEncode(meaningText) + '"\n';
+    }
+
+    poText += 'msgid "' + poEncode(sourceText) + '"\n\n';
+
+    return poText;
+}
+
 //
 module.exports = function (xlfFileName, poFileName) {
     let xmlText = fs.readFileSync(xlfFileName);
@@ -20,9 +40,9 @@ module.exports = function (xlfFileName, poFileName) {
     let bodyElement = fileElement.elements[0];
     let transUnits = bodyElement.elements;
     let numTransUnitsWritten = 0;
-
     let poText = '';
-    
+    let foundStrings = new Set();
+
     for (transUnit of transUnits) {
         let transId = transUnit.attributes.id;
         let sourceElement = transUnit.elements.find((element)=>element.name==='source');
@@ -31,23 +51,17 @@ module.exports = function (xlfFileName, poFileName) {
         let meaningText = meaningElement ? meaningElement.elements[0].text : '';
         let descriptionElement = noteElements && noteElements.find((element)=>element.attributes.from==='description');
         let descriptionText = descriptionElement ? descriptionElement.elements[0].text : '';
-        let targetText = convert.js2xml(sourceElement);
+        let sourceText = convert.js2xml(sourceElement);
+       
+        let uniqueStringId = sourceText + '|:' + meaningText + '|:' + descriptionText;
 
-        if (descriptionText) {
-            poText += '#. ' + poEncode(descriptionText) + '\n';
+        if (foundStrings.has(uniqueStringId)) {
+            console.warn('Found duplicate string: ' + uniqueStringId);
+        } else {
+            foundStrings.add(uniqueStringId);
+            poText += createPoString(sourceText, meaningText, descriptionText, transId);
+            numTransUnitsWritten++;
         }
-
-        if (transId) {
-            poText += '#: ' + transId + '\n';
-        }
-
-        if (meaningText) {
-            poText += 'msgctxt "' + poEncode(meaningText) + '"\n';
-        }
-
-        poText += 'msgid "' + poEncode(targetText) + '"\n\n';
-
-        numTransUnitsWritten++;
     }
 
     fs.writeFileSync(poFileName, poText);
