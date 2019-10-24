@@ -2,14 +2,6 @@
 const fs = require('fs');
 const convert = require('xml-js');
 
-function poEncode(rawString) {
-    return rawString
-        .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"')
-        .replace(/\n/g, '"\n"')
-    ;
-}
-
 function createPoString(sourceText, meaningText, descriptionText, transId) {
     let poText = '';
 
@@ -30,8 +22,25 @@ function createPoString(sourceText, meaningText, descriptionText, transId) {
     return poText;
 }
 
+function poEncode(rawString) {
+    return rawString
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '"\n"')
+    ;
+}
+
+function normalizeWhitespace(rawString) {
+    return rawString
+        .replace(/\s+/g, ' ')
+        .trim()
+    ;
+}
+
+
 //
-module.exports = function (xlfFileName, poFileName) {
+module.exports = function (xlfFileName, poFileName, options) {
+    options = options || {};
     let xmlText = fs.readFileSync(xlfFileName);
     let xmlRoot = convert.xml2js(xmlText, {});
     
@@ -51,10 +60,13 @@ module.exports = function (xlfFileName, poFileName) {
         let meaningText = meaningElement ? meaningElement.elements[0].text : '';
         let descriptionElement = noteElements && noteElements.find((element)=>element.attributes.from==='description');
         let descriptionText = descriptionElement ? descriptionElement.elements[0].text : '';
-        let sourceText = convert.js2xml(sourceElement);
-       
+        let sourceText = convert.js2xml(sourceElement);       
         let uniqueStringId = sourceText + '|:' + meaningText + '|:' + descriptionText;
 
+        if (options.normalizeWhitespace) {
+            sourceText = normalizeWhitespace(sourceText);
+        }
+        
         if (foundStrings.has(uniqueStringId)) {
             console.warn('Found duplicate string: ' + uniqueStringId);
         } else {
