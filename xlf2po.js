@@ -52,6 +52,11 @@ module.exports = function (xlfFileName, poFileName, options) {
     let poText = '';
     let foundStrings = new Set();
 
+    let hasFoundPlural = false;
+    const pluralExpression = /^<x id="(ICU.*?)" equiv-text="\{.+?, plural, (=1|one) \{...\} other \{...\}\}"\/>$/;
+    let hasFoundGenderSelect = false;
+    const genderSelectExpression = /^<x id="(ICU.*?)" equiv-text="\{.+?, select, m \{...\} f \{...\}\}"\/>$/;
+
     for (transUnit of transUnits) {
         let transId = transUnit.attributes.id;
         let sourceElement = transUnit.elements.find((element)=>element.name==='source');
@@ -60,19 +65,38 @@ module.exports = function (xlfFileName, poFileName, options) {
         let meaningText = meaningElement ? meaningElement.elements[0].text : '';
         let descriptionElement = noteElements && noteElements.find((element)=>element.attributes.from==='description');
         let descriptionText = descriptionElement ? descriptionElement.elements[0].text : '';
-        let sourceText = convert.js2xml(sourceElement);       
-        let uniqueStringId = sourceText + '|:' + meaningText + '|:' + descriptionText;
+        let sourceText = convert.js2xml(sourceElement);
 
         if (options.normalizeWhitespace) {
             sourceText = normalizeWhitespace(sourceText);
         }
-        
-        if (foundStrings.has(uniqueStringId)) {
-            console.warn('Found duplicate string: ' + uniqueStringId);
+
+        let uniqueStringId = sourceText + '|:' + meaningText + '|:' + descriptionText;
+
+        if (sourceText.match(pluralExpression)) {
+            if (!hasFoundPlural) {
+                hasFoundPlural = true;
+                let matches = sourceText.match(pluralExpression);
+                sourceText = '<x id="' + matches[1] + '" equiv-text="{num, plural, one {...} other {...}}"/>';
+                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                numTransUnitsWritten++;
+            }
+        } else if (sourceText.match(genderSelectExpression)) {
+            if (!hasFoundGenderSelect) {
+                hasFoundGenderSelect = true;
+                let matches = sourceText.match(genderSelectExpression);
+                sourceText = '<x id="' + matches[1] + '" equiv-text="{gender, select, m {...} f {...}}"/>';
+                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                numTransUnitsWritten++;
+            }
         } else {
-            foundStrings.add(uniqueStringId);
-            poText += createPoString(sourceText, meaningText, descriptionText, transId);
-            numTransUnitsWritten++;
+            if (foundStrings.has(uniqueStringId)) {
+                console.warn('Found duplicate string: ' + uniqueStringId);
+            } else {
+                foundStrings.add(uniqueStringId);
+                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                numTransUnitsWritten++;
+            }
         }
     }
 

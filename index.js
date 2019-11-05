@@ -32,6 +32,10 @@ program
         '-w --normalize-whitespace',
         'Normalizes whitespace to a single space character and trims leading and trailing whitespace.',
     )
+    .option(
+        '--enable-angular-optimizations',
+        'Enable some optimizations to work around specific angular issues.',
+    )
     .parse(process.argv)
 ;
 
