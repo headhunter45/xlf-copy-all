@@ -1,14 +1,14 @@
 {
-  "name": "xliff-convert",
+  "name": "xliff-tool",
   "version": "0.0.1",
-  "description": "Command line utility to convert between xliff and po formats.",
+  "description": "Command line utility to manipulate xliff files.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/headhunter45/xliff-convert.git"
+    "url": "git+https://github.com/headhunter45/xliff-tool.git"
   },
   "keywords": [
     "xliff",
@@ -18,14 +18,17 @@
   "author": "Tom HIcks <headhunter3@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/headhunter45/xliff-convert/issues"
+    "url": "https://github.com/headhunter45/xliff-tool/issues"
   },
-  "homepage": "https://github.com/headhunter45/xliff-convert#readme",
+  "homepage": "https://github.com/headhunter45/xliff-tool#readme",
   "dependencies": {
     "commander": "^3.0.2",
+    "gettext-parser": "^4.0.2",
     "xml-js": "^1.6.11"
   },
   "bin": {
-    "xliff-convert": "./index.js"
+    "xliff-tool": "./xliff-tool.js",
+    "xliff-tool-extract": "./xliff-tool-extract.js",
+    "xliff-tool-update": "./xliff-tool-update.js"
   }
 }

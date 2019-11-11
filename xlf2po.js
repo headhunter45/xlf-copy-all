@@ -1,5 +1,6 @@
 
 const fs = require('fs');
+const path = require('path');
 const convert = require('xml-js');
 
 function createPoString(sourceText, meaningText, descriptionText, transId) {
@@ -39,8 +40,9 @@ function normalizeWhitespace(rawString) {
 
 
 //
-module.exports = function (xlfFileName, poFileName, options) {
+module.exports = function (xlfFileName, options) {
     options = options || {};
+    let poFileName = options.outputFile;
     let xmlText = fs.readFileSync(xlfFileName);
     let xmlRoot = convert.xml2js(xmlText, {});
     
@@ -100,7 +102,11 @@ module.exports = function (xlfFileName, poFileName, options) {
         }
     }
 
-    fs.writeFileSync(poFileName, poText);
-
-    console.log(`${numTransUnitsWritten} trans-units written to ${poFileName}`);
+    if (poFileName) {
+        fs.mkdirSync(path.dirname(poFileName), {recursive: true});
+        fs.writeFileSync(poFileName, poText);
+        console.log(`${numTransUnitsWritten} trans-units written to ${poFileName}`);
+    } else {
+        console.log(poText);
+    }
 }
