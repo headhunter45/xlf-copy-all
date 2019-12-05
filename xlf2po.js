@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const convert = require('xml-js');
 
-function createPoString(sourceText, meaningText, descriptionText, transId) {
+function createPoString(sourceText, meaningText, descriptionText, transId, targetText) {
     let poText = '';
 
     if (descriptionText) {
@@ -18,7 +18,13 @@ function createPoString(sourceText, meaningText, descriptionText, transId) {
         poText += 'msgctxt "' + poEncode(meaningText) + '"\n';
     }
 
-    poText += 'msgid "' + poEncode(sourceText) + '"\n\n';
+    poText += 'msgid "' + poEncode(sourceText) + '"\n';
+
+    if (targetText) {
+        poText += 'msgstr "' + poEncode(targetText) + '"\n';
+    }
+
+    poText += '\n';
 
     return poText;
 }
@@ -68,6 +74,8 @@ module.exports = function (xlfFileName, options) {
         let descriptionElement = noteElements && noteElements.find((element)=>element.attributes.from==='description');
         let descriptionText = descriptionElement ? descriptionElement.elements[0].text : '';
         let sourceText = convert.js2xml(sourceElement);
+        let targetElement = transUnit.elements.find((element)=>element.name==='target');
+        let targetText = !!targetElement ? convert.js2xml(targetElement) : null;
 
         if (options.normalizeWhitespace) {
             sourceText = normalizeWhitespace(sourceText);
@@ -80,7 +88,7 @@ module.exports = function (xlfFileName, options) {
                 hasFoundPlural = true;
                 let matches = sourceText.match(pluralExpression);
                 sourceText = '<x id="' + matches[1] + '" equiv-text="{num, plural, one {...} other {...}}"/>';
-                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                poText += createPoString(sourceText, meaningText, descriptionText, transId, targetText);
                 numTransUnitsWritten++;
             }
         } else if (sourceText.match(genderSelectExpression)) {
@@ -88,7 +96,7 @@ module.exports = function (xlfFileName, options) {
                 hasFoundGenderSelect = true;
                 let matches = sourceText.match(genderSelectExpression);
                 sourceText = '<x id="' + matches[1] + '" equiv-text="{gender, select, m {...} f {...}}"/>';
-                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                poText += createPoString(sourceText, meaningText, descriptionText, transId, targetText);
                 numTransUnitsWritten++;
             }
         } else {
@@ -96,7 +104,7 @@ module.exports = function (xlfFileName, options) {
                 console.warn('Found duplicate string: ' + uniqueStringId);
             } else {
                 foundStrings.add(uniqueStringId);
-                poText += createPoString(sourceText, meaningText, descriptionText, transId);
+                poText += createPoString(sourceText, meaningText, descriptionText, transId, targetText);
                 numTransUnitsWritten++;
             }
         }
