@@ -49,7 +49,10 @@ module.exports = function (xlfFileName, poFileName, options) {
     outputText = convert.js2xml(xmlRoot);
 
     if (outputFileName) {
-        fs.mkdirSync(path.dirname(outputFileName), {recursive: true});
+        const outputDirName = path.dirname(outputFileName);
+        if (!fs.existsSync(outputDirName)) {
+            fs.mkdirSync(path.dirname(outputFileName), {recursive: true});
+        }
         fs.writeFileSync(outputFileName, outputText);
         console.log(`${numStringsUpdated} new translations added to ${outputFileName}`);
     } else {

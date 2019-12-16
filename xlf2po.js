@@ -111,7 +111,10 @@ module.exports = function (xlfFileName, options) {
     }
 
     if (poFileName) {
-        fs.mkdirSync(path.dirname(poFileName), {recursive: true});
+        const outputDirName = path.dirname(poFileName);
+        if (!fs.existsSync(outputDirName)) {
+            fs.mkdirSync(path.dirname(poFileName), {recursive: true});
+        }
         fs.writeFileSync(poFileName, poText);
         console.log(`${numTransUnitsWritten} trans-units written to ${poFileName}`);
     } else {
