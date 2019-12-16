@@ -25,7 +25,20 @@ module.exports = function (xlfFileName, poFileName, options) {
     let numStringsUpdated = 0;
     let poText = fs.readFileSync(poFileName);
     let poData = gettextParser.po.parse(poText);
-    let poStrings = Object.values(poData.translations).flatMap(i=>Object.values(i));
+    const flattener = function(accumulator, current) {
+        if (Array.isArray(current)) {
+            for (const element of current) {
+                flattener(accumulator, element)
+            }
+        } else {
+            accumulator.push(current);
+        }
+
+        return accumulator;
+    };
+    let poStrings = Object.values(poData.translations)
+        .map(i=>Object.values(i))
+        .reduce(flattener, []);
 
     for (transUnit of transUnits) {
         // check for transUnit.attributes.state !== 'final'
