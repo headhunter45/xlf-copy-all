@@ -6,7 +6,13 @@ const gettextParser = require('gettext-parser');
 
 function getPoString(poStrings, id, meaning, description) {
     const foundString = poStrings.find((translation) => {
-        return translation.msgid === id && translation.msgctxt === meaning && translation.comments.extracted === description;
+        const descriptionComment = translation.comments ? translation.comments.extracted : undefined;
+
+        return (
+            translation.msgid === id &&
+            translation.msgctxt === meaning &&
+            descriptionComment === description
+        );
     });
 
     return foundString;
